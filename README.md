@@ -78,3 +78,43 @@ SELECT
     ROUND(AVG(satisfaction_score), 1) AS avg_satisfaction_score
 FROM hcp
 GROUP BY doctor_name
+ORDER BY readmission_rate_pct DESC;
+Key Insight:
+
+This analysis provides a clear view of which clinical teams face high return rates.
+
+Recommendation: Doctors with high readmission rates and low satisfaction scores should be flagged for an internal clinical review to see if patients are being discharged prematurely without proper recovery guidelines.
+
+4. Patient Demographics & Severity Risk Profiling
+Problem Statement: Does patient risk (severity) directly correlate with higher resource usage (length of stay and costs)?
+
+SQL Query:
+
+SQL
+-- Analysis by Patient Age Groups
+SELECT
+    age_group,
+    ROUND(AVG(treatment_cost), 2) AS avg_treatment_cost,
+    ROUND(AVG(length_of_stay), 2) AS avg_length_of_stay
+FROM hcp
+GROUP BY age_group
+ORDER BY avg_treatment_cost DESC;
+
+-- Analysis by Case Severity
+SELECT
+    severity,
+    ROUND(AVG(treatment_cost), 2) AS avg_treatment_cost,
+    ROUND(AVG(length_of_stay), 2) AS avg_length_of_stay
+FROM hcp
+GROUP BY severity
+ORDER BY avg_treatment_cost DESC;
+Key Insight:
+
+Severe cases naturally cost the highest (~2.04 Lakhs) compared to Mild cases (~1.95 Lakhs). However, surprisingly, the average length of stay is almost identical across all levels (~8.2 to 8.5 days).
+
+Recommendation: Mild cases are occupying hospital beds just as long as critical, severe cases. The hospital should look into setting up a fast-track discharge process or day-care options for mild cases to reduce unnecessary bed occupancy.
+
+Final Project Summary (Conclusion)
+By shifting the perspective from Payer to Provider, this project successfully highlights where the hospital is operationally efficient and where it is losing money. By fixing the discharge delays for mild severity patients and managing high-stay departments like General Surgery, the hospital can improve its bed turnover rate, take in more patients, and ultimately increase overall profitability.
+
+Once you create your Power BI dashboard, you can just take a screenshot and paste the image at the top of this file to make it look even cleaner!
