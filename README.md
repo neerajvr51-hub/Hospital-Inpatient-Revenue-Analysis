@@ -9,7 +9,7 @@ In this project, I analysed inpatient data from a hospital to help management un
 
 | Page 1: Executive Overview | Page 2: Bed Operations | Page 3: Clinical & Finance |
 | :---: | :---: | :---: |
-| ![Page 1](page1.png) | ![Page 2](page2.png) | ![Page 3](page3.png) |
+| ![Overview](Overview.png) | ![Bed Management & Operations](Bed_Management_&_Operations.png) | ![Clinical & Finance](Clinical_&_Finance.png) |
 
 > *Note: You can check the `hospital_analysis.sql` file in this repository to see all the SQL data cleaning steps and analysis queries.*
 
