@@ -1,130 +1,44 @@
-# Hospital Inpatient Revenue & Bed Efficiency Analysis
+# Hospital Inpatient Revenue & Bed Operations Analysis
 
 ## Project Overview
-After completing a healthcare data analytics project focused on 
-the payer (insurance) side, this project shifts perspectives to 
-the **provider (hospital) side**. The goal is to analyze inpatient 
-operational data to help hospital management optimize internal 
-revenue cycle workflows, reduce inpatient bed bottlenecks, 
-and evaluate clinical quality. 
+In this project, I analysed inpatient data from a hospital to help management understand room availability, revenue streams, and patient care quality. The goal was to find practical insights to improve daily operations and shorten patient wait times.
 
 ---
 
-## Data Cleaning & Transformation
-The raw incoming dataset contained unorganized column fields. 
-The initial phase required executing a data definition script 
-to standardize the table layout into clean `snake_case` formats:
+## Dashboard Preview
 
-```sql
-ALTER TABLE hcp 
-RENAME COLUMN dischargedate TO discharge_date,
-RENAME COLUMN treatmentcost TO treatment_cost,
-RENAME COLUMN doctorname TO doctor_name,
-RENAME COLUMN insuranceprovider TO insurance_provider,
-RENAME COLUMN treatmenttype TO treatment_type,
-RENAME COLUMN bedtype TO bed_type,
-RENAME COLUMN paymentmethod TO payment_method,
-RENAME COLUMN satisfactionscore TO satisfaction_score;
-Strategic Business Analyses
-1. Inpatient Bed Utilization & Flow Optimization
-Problem: Inpatient beds are fixed assets. Long recovery bottlenecks
-in low-margin areas reduce a hospital's capability to take on
-higher-revenue surgical or acute emergencies.
+| Page 1: Executive Overview | Page 2: Bed Operations | Page 3: Clinical & Finance |
+| :---: | :---: | :---: |
+| ![Page 1](page1.png) | ![Page 2](page2.png) | ![Page 3](page3.png) |
 
-SQL
-SELECT 
-    bed_type,
-    department,
-    ROUND(AVG(length_of_stay), 2) AS avg_stay
-FROM hcp
-GROUP BY bed_type, department
-ORDER BY avg_stay DESC;
-Core Discovery: General Surgery cases using General beds
-and Orthopedics patients inside Semi-Private housing experience
-the longest stays (~9 days).
+> *Note: You can check the `hospital_analysis.sql` file in this repository to see all the SQL data cleaning steps and analysis queries.*
 
-Strategic Recommendation: Hospital leadership should implement
-standardized post-operative clinical paths to safely free up
-these highly requested bed categories.
+---
 
-2. Revenue Cycle Management (RCM) & Payer Metrics
-Problem: The finance department must track the highest ticket
-billing sources and determine how various medical insurance companies
-handle patient accounts to optimize cash flow stability.
+## Key Findings & Recommendations
 
-SQL
--- Metric A: Cost distribution across payment modes
-SELECT payment_method, ROUND(AVG(treatment_cost), 2) AS avg_cost 
-FROM hcp GROUP BY payment_method ORDER BY avg_cost DESC;
+### 1. Hospital Bed Usage & Patient Flow
+* **Problem:** Hospital beds are limited. When patients stay too long in low-cost rooms, it blocks new patients who need emergency or high-value surgery.
+* **Main Finding:** Patients in General Surgery (using General beds) and Orthopedics (using Semi-Private rooms) stayed the longest, averaging around 9 days.
+* **My Suggestion:** The hospital should create standard recovery plans for surgery patients and speed up the discharge paperwork to free up beds faster.
 
--- Metric B: Claims profile across major insurers
-SELECT insurance_provider, ROUND(AVG(treatment_cost), 2) AS avg_cost 
-FROM hcp GROUP BY insurance_provider ORDER BY avg_cost DESC;
-Core Discovery: Accounts cleared via corporate Insurance
-settle at the highest average billing amount (~2.10 Lakhs).
-Among active health carriers, Star Health commands the
-largest average invoice size (~2.05 Lakhs).
+### 2. Payment Methods & Insurance Performance
+* **Problem:** The finance team needs to know which payment methods and insurance companies bring in the most money and clear payments smoothly.
+* **Main Finding:** Corporate **Insurance** payments had the highest average bill size (~2.10 Lakhs). Among private insurers, **Star Health** had the largest average claim amount (~2.05 Lakhs).
+* **My Suggestion:** Set up a dedicated desk for Star Health approvals to get claims cleared quickly and avoid payment delays.
 
-Strategic Recommendation: Establish dedicated pre-authorization
-billing desks for Star Health to minimize payment rejection rates.
+### 3. Patient Care Quality & Readmission Rates
+* **Problem:** Patients coming back to the hospital shortly after discharge (readmission) increases costs and shows potential gaps in care quality.
+* **Main Finding:** Using a doctor performance scorecard, I found a few specific doctors with high patient readmission rates and lower satisfaction scores.
+* **My Suggestion:** Senior medical staff should review these specific cases to make sure patients are fully recovered before sending them home.
 
-3. Clinical Quality Monitoring & Doctor Scorecards
-Problem: Unusually high patient readmissions create unnecessary
-operational costs and lower a healthcare organization's regulatory
-care scorecard.
+### 4. Patient Age & Case Severity
+* **Problem:** Checking if patients with severe conditions are staying longer and paying more than patients with mild conditions.
+* **Main Finding:** While **Severe** cases had the highest bills (~2.04 Lakhs), patients with **Mild** issues surprisingly stayed in beds for almost the same length of time (~8.3 days).
+* **My Suggestion:** Mild cases are taking up valuable beds unnecessarily. The hospital can move these patients to outpatient care or same-day treatment units.
 
-SQL
-SELECT 
-    doctor_name,
-    COUNT(patient_id) AS total_patients_treated,
-    SUM(CASE WHEN readmitted = 'Yes' THEN 1 ELSE 0 END) AS total_readmissions,
-    ROUND((SUM(CASE WHEN readmitted = 'Yes' THEN 1 ELSE 0 END) * 100.0) / COUNT(patient_id), 2) AS readmission_rate_pct,
-    ROUND(AVG(satisfaction_score), 1) AS avg_satisfaction
-FROM hcp
-GROUP BY doctor_name
-ORDER BY readmission_rate_pct DESC;
-Core Discovery: This dynamic scorecard tracks doctor-specific
-outliers showing high patient bounce-back rates paired with
-low overall satisfaction ratings.
+---
 
-Strategic Recommendation: Flag extreme statistical outliers
-for an internal clinical review board to ensure patients are
-not being discharged prematurely.
-
-4. Demographic Analysis & Severity Risk Profiling
-Problem: Assessing if severe medical risks correlate directly
-with prolonged bed occupancy and significantly higher treatment expenses.
-
-SQL
--- Analysis by Patient Age Groups
-SELECT
-    age_group,
-    ROUND(AVG(treatment_cost), 2) AS avg_treatment_cost,
-    ROUND(AVG(length_of_stay), 2) AS avg_length_of_stay
-FROM hcp
-GROUP BY age_group
-ORDER BY avg_treatment_cost DESC;
-
--- Analysis by Case Severity
-SELECT
-    severity,
-    ROUND(AVG(treatment_cost), 2) AS avg_treatment_cost,
-    ROUND(AVG(length_of_stay), 2) AS avg_length_of_stay
-FROM hcp
-GROUP BY severity
-ORDER BY avg_treatment_cost DESC;
-Core Discovery: While Severe cases pull in the highest
-billings (~2.04 Lakhs), Mild severity cases are unexpectedly
-occupying beds for almost identical timeframes (~8.3 days).
-
-Strategic Recommendation: Mild cases are causing unnecessary
-bed blocks. The hospital should transition low-risk, mild-severity
-cases toward outpatient daycare setups.
-
-Executive Conclusion
-By implementing operational improvements such as fast-tracking the
-discharge pipelines for low-risk/mild cases and streamlining post-op
-care bottlenecks in General Surgery, the facility can significantly
-improve its bed turnover velocity. This directly increases patient
-intake volume capacity and drives higher bottom-line profitability
-for the hospital network.
+## Tools Used
+* **Data Cleaning & Analysis:** SQL (MySQL)
+* **Data Visualization:** Power BI (3-Page Interactive Dashboard)
